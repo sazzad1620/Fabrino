@@ -46,7 +46,7 @@
             android:layout_marginStart="8dp"
             android:fontFamily="@font/aldrich"
             android:gravity="center_vertical"
-            android:text="FABRILIFE"
+            android:text="FABRINO"
             android:textColor="#000000"
             android:textSize="24sp"
             android:textStyle="bold"
