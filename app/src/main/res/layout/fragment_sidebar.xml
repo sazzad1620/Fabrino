@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/header_mens"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mens"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:clickable="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/halfSleeveTshirt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Half Sleeve T-shirt"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/fullSleeveTshirt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Full Sleeve T-shirt"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/poloTshirt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Polo T-shirt"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/jeans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Jeans"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/punjabi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Punjabi"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+
+            <TextView
+                android:id="@+id/header_womens"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Womens"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:clickable="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/kurti"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Kurti"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/tshirt_women"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="T-Shirt"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/pants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pants"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+
+            <TextView
+                android:id="@+id/header_accessories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Accessories"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:clickable="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+
+            <TextView
+                android:id="@+id/wallet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Wallet"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
+                android:id="@+id/facemask"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Face Mask"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
