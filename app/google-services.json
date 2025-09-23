@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1087402622636",
+    "project_id": "fabrino1-e139c",
+    "storage_bucket": "fabrino1-e139c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1087402622636:android:44018ee6d256cab1012909",
+        "android_client_info": {
+          "package_name": "com.example.fabrinoproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyIiaG7ly7uJjn4NbGXuvMwyVD0yj4Tc4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

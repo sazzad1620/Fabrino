@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 
 class ProductDetailActivity : AppCompatActivity() {
 
@@ -18,14 +19,14 @@ class ProductDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
 
-
         val topBarIcon = findViewById<ImageView>(R.id.topBarIcon)
         topBarIcon.setImageResource(R.drawable.ic_arrow_back)
         topBarIcon.setOnClickListener { finish() }
 
+        // Updated: get the correct extras
         val productName = intent.getStringExtra("ITEM_NAME")
-        val productPrice = intent.getStringExtra("ITEM_PRICE")
-        val productImage = intent.getIntExtra("ITEM_IMAGE", 0)
+        val productPrice = intent.getDoubleExtra("ITEM_PRICE", 0.0)
+        val productImageUrl = intent.getStringExtra("ITEM_IMAGE_URL")
         val productSizes = intent.getStringArrayListExtra("ITEM_SIZES") ?: arrayListOf()
         val productDescription = intent.getStringExtra("ITEM_DESC") ?: ""
 
@@ -36,11 +37,20 @@ class ProductDetailActivity : AppCompatActivity() {
         val tvDescription: TextView = findViewById(R.id.tvDescription)
 
         tvName.text = productName
-        tvPrice.text = productPrice
-        if (productImage != 0) ivImage.setImageResource(productImage)
+        tvPrice.text = "৳$productPrice"
+
+        // Load image from URL using Glide
+        if (!productImageUrl.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(productImageUrl.trim())
+                .placeholder(R.drawable.default_image)
+                .error(R.drawable.default_image)
+                .into(ivImage)
+        }
+
         tvDescription.text = productDescription
 
-        // product size card
+        // Product size cards
         productSizes.forEach { size ->
             val cardView = CardView(this).apply {
                 radius = 16f
@@ -58,7 +68,6 @@ class ProductDetailActivity : AppCompatActivity() {
 
             cardView.addView(sizeTextView)
 
-            // OnClick Listener for selection
             cardView.setOnClickListener {
                 // Reset all boxes
                 for (i in 0 until sizeContainer.childCount) {
@@ -82,7 +91,7 @@ class ProductDetailActivity : AppCompatActivity() {
             sizeContainer.addView(cardView, layoutParams)
         }
 
-        //Checkout Button
+        // Checkout Button
         val checkoutButton: TextView = findViewById(R.id.navCheckout)
         checkoutButton.setOnClickListener {
             if (selectedSize == null) {
@@ -91,7 +100,5 @@ class ProductDetailActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please create an account first", Toast.LENGTH_SHORT).show()
             }
         }
-
-
     }
 }

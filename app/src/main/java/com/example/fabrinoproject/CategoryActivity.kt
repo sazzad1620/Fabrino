@@ -3,8 +3,10 @@ package com.example.fabrinoproject
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 
 class CategoryActivity : AppCompatActivity() {
 
@@ -12,22 +14,18 @@ class CategoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_category)
 
-        // Get category name
         val categoryName = intent.getStringExtra("CATEGORY_NAME") ?: "Category"
 
-        // Top Bar
         val topBarIcon = findViewById<ImageView>(R.id.topBarIcon)
-        topBarIcon.setImageResource(R.drawable.ic_arrow_back) // replace hamburger with arrow
-        topBarIcon.setOnClickListener {
-            finish()
-        }
+        topBarIcon.setImageResource(R.drawable.ic_arrow_back)
+        topBarIcon.setOnClickListener { finish() }
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewCategory)  //item card by recycler
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewCategory)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
-
-        val items = ItemRepository.getItemsByCategory(categoryName)
-        recyclerView.adapter = ItemAdapter(items)
-
+        lifecycleScope.launch {
+            val items = ItemRepository.getItemsByCategory(categoryName)
+            recyclerView.adapter = ItemAdapter(items)
+        }
     }
 }
