@@ -49,6 +49,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:28.4.1"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    // Firebase Authentication
+    implementation ("com.google.firebase:firebase-auth-ktx:22.3.0")
 
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.15.1")

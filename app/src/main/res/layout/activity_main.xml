@@ -58,7 +58,7 @@
                 android:textStyle="bold" />
 
             <LinearLayout
-                android:id="@+id/align"
+                android:id="@+id/userInfoLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
