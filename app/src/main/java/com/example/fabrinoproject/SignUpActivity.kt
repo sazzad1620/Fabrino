@@ -27,6 +27,9 @@ class SignUpActivity : AppCompatActivity() {
 
     private val db = Firebase.firestore
 
+    // Fixed admin email to block from signup
+    private val adminEmail = "admin@gmail.com"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
@@ -70,6 +73,11 @@ class SignUpActivity : AppCompatActivity() {
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmailSignUp.error = "Invalid Email"
+            return
+        }
+        // Block admin email from signup
+        if (email == adminEmail) {
+            etEmailSignUp.error = "Cannot use admin email"
             return
         }
         if (password.isEmpty() || password.length < 6) {

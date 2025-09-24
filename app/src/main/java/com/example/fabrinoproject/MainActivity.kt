@@ -130,8 +130,8 @@ class MainActivity : AppCompatActivity() {
 
         btnLogout.setOnClickListener {
             auth.signOut()
-            textViewUser.text = "Hi, Guest"
-            popupWindow.dismiss()
+            startActivity(Intent(this, SignInActivity::class.java))
+            finish() // CloseActivity after logout
         }
 
         // Show popup below the user info layout

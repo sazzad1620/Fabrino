@@ -15,9 +15,9 @@
         android:theme="@style/Theme.FabrinoProject"
         tools:targetApi="31">
 
-
+        <!-- Make SignInActivity the entry point -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SignInActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,11 +25,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Main user activity -->
+        <activity android:name=".MainActivity" />
+
+        <!-- Admin activity -->
+        <activity android:name=".AdminActivity" />
+
+        <!-- Other activities -->
         <activity android:name=".CategoryActivity" />
         <activity android:name=".ProductDetailActivity" />
-
-        <!-- Authentication activities -->
-        <activity android:name=".SignInActivity" />
         <activity android:name=".SignUpActivity" />
 
         <meta-data
