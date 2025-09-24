@@ -1,6 +1,10 @@
 package com.example.fabrinoproject
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.*
@@ -8,7 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import android.content.Intent
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
 
 class AdminActivity : AppCompatActivity() {
 
@@ -22,7 +28,6 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var etItemName: EditText
     private lateinit var etPrice: EditText
     private lateinit var etDescription: EditText
-    private lateinit var etImageUrl: EditText
     private lateinit var spinnerCategory: Spinner
     private lateinit var cbS: CheckBox
     private lateinit var cbM: CheckBox
@@ -30,7 +35,10 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var cbXL: CheckBox
     private lateinit var cb2XL: CheckBox
     private lateinit var btnAddItem: Button
+    private lateinit var btnSelectImage: Button
 
+    private var selectedImageUri: Uri? = null
+    private val PICK_IMAGE_REQUEST = 100
     private val categories = listOf(
         "Half Sleeve T-shirt",
         "Full Sleeve T-shirt",
@@ -43,6 +51,8 @@ class AdminActivity : AppCompatActivity() {
         "Wallet",
         "Face Mask"
     )
+
+    private val imgbbApiKey = "86c2dd6a00ecb3df8ea2512e91b4d0d8"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +80,6 @@ class AdminActivity : AppCompatActivity() {
         etItemName = findViewById(R.id.etItemName)
         etPrice = findViewById(R.id.etPrice)
         etDescription = findViewById(R.id.etDescription)
-        etImageUrl = findViewById(R.id.etImageUrl)
         spinnerCategory = findViewById(R.id.spinnerCategory)
         cbS = findViewById(R.id.cbS)
         cbM = findViewById(R.id.cbM)
@@ -78,18 +87,27 @@ class AdminActivity : AppCompatActivity() {
         cbXL = findViewById(R.id.cbXL)
         cb2XL = findViewById(R.id.cb2XL)
         btnAddItem = findViewById(R.id.btnAddItem)
+        btnSelectImage = findViewById(R.id.btnSelectImage)
 
         // Setup category spinner
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategory.adapter = adapter
 
-        // Handle Add Item button click
+        // Image selection
+        btnSelectImage.setOnClickListener { openImageChooser() }
+
+        // Add item click
         btnAddItem.setOnClickListener {
-            addItemToFirestore()
+            if (selectedImageUri == null) {
+                Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            uploadImageToImgBB(selectedImageUri!!)
         }
     }
 
+    // --- User / Logout ---
     private fun fetchUserName() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).get()
@@ -105,13 +123,7 @@ class AdminActivity : AppCompatActivity() {
     private fun showUserInfoPopup() {
         val inflater = LayoutInflater.from(this)
         val popupView = inflater.inflate(R.layout.popup_user_info, null)
-
-        val popupWindow = PopupWindow(
-            popupView,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            true
-        )
+        val popupWindow = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
 
         val tvFullName = popupView.findViewById<TextView>(R.id.tvFullName)
         val btnLogout = popupView.findViewById<Button>(R.id.btnLogout)
@@ -142,26 +154,78 @@ class AdminActivity : AppCompatActivity() {
         popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
     }
 
-    private fun addItemToFirestore() {
+    // --- Image picker ---
+    private fun openImageChooser() {
+        val intent = Intent()
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
+            selectedImageUri = data.data
+            Toast.makeText(this, "Image selected", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // --- Upload to ImgBB ---
+    private fun uploadImageToImgBB(uri: Uri) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            val encodedImage = Base64.encodeToString(bytes, Base64.DEFAULT)
+
+            val client = OkHttpClient()
+            val formBody = okhttp3.FormBody.Builder()
+                .add("key", imgbbApiKey)
+                .add("image", encodedImage)
+                .build()
+
+            val request = okhttp3.Request.Builder()
+                .url("https://api.imgbb.com/1/upload")
+                .post(formBody)
+                .build()
+
+            client.newCall(request).enqueue(object : okhttp3.Callback {
+                override fun onFailure(call: okhttp3.Call, e: IOException) {
+                    runOnUiThread { Toast.makeText(this@AdminActivity, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show() }
+                }
+
+                override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                    if (response.isSuccessful) {
+                        val json = response.body?.string()
+                        val url = JSONObject(json).getJSONObject("data").getString("url")
+                        runOnUiThread { addItemToFirestore(url) }
+                    } else {
+                        runOnUiThread { Toast.makeText(this@AdminActivity, "Upload failed: ${response.message}", Toast.LENGTH_SHORT).show() }
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // --- Firestore ---
+    private fun addItemToFirestore(imageUrl: String) {
         val name = etItemName.text.toString().trim()
         val priceText = etPrice.text.toString().trim()
         val description = etDescription.text.toString().trim()
-        val imageUrl = etImageUrl.text.toString().trim()
         val category = spinnerCategory.selectedItem.toString()
 
-        if (name.isEmpty() || priceText.isEmpty() || description.isEmpty() || imageUrl.isEmpty()) {
+        if (name.isEmpty() || priceText.isEmpty() || description.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val price = try {
-            priceText.toDouble()
-        } catch (e: NumberFormatException) {
+        val price = priceText.toDoubleOrNull()
+        if (price == null) {
             Toast.makeText(this, "Invalid price", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Collect selected sizes
         val sizes = mutableListOf<String>()
         if (cbS.isChecked) sizes.add("S")
         if (cbM.isChecked) sizes.add("M")
@@ -183,7 +247,6 @@ class AdminActivity : AppCompatActivity() {
             category = category
         )
 
-        // Add to Firestore
         db.collection("items")
             .add(item)
             .addOnSuccessListener {
@@ -199,12 +262,12 @@ class AdminActivity : AppCompatActivity() {
         etItemName.text.clear()
         etPrice.text.clear()
         etDescription.text.clear()
-        etImageUrl.text.clear()
         cbS.isChecked = false
         cbM.isChecked = false
         cbL.isChecked = false
         cbXL.isChecked = false
         cb2XL.isChecked = false
         spinnerCategory.setSelection(0)
+        selectedImageUri = null
     }
 }

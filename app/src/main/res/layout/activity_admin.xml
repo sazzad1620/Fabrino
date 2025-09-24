@@ -133,13 +133,22 @@
                 android:inputType="textMultiLine"
                 android:layout_marginBottom="12dp"/>
 
-            <!-- Image URL -->
-            <EditText
-                android:id="@+id/etImageUrl"
+
+
+            <!-- Select Image -->
+            <Button
+                android:id="@+id/btnSelectImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Image URL"
-                android:inputType="textUri"
+                android:text="Select Image"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvSelectedImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No image selected"
+                android:textColor="#555555"
                 android:layout_marginBottom="12dp"/>
 
             <!-- Category Dropdown -->
