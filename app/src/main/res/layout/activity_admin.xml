@@ -81,18 +81,103 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Admin Content -->
-    <TextView
-        android:id="@+id/tvAdmin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Welcome Admin"
-        android:textSize="24sp"
-        android:textColor="#000000"
-        android:textStyle="bold"
+    <!-- Add Item Form -->
+    <ScrollView
+        android:id="@+id/scrollViewForm"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/topBarLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add New Item"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Item Name -->
+            <EditText
+                android:id="@+id/etItemName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Item Name"
+                android:inputType="textPersonName"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Price -->
+            <EditText
+                android:id="@+id/etPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Price"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Description -->
+            <EditText
+                android:id="@+id/etDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Description"
+                android:inputType="textMultiLine"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Image URL -->
+            <EditText
+                android:id="@+id/etImageUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Image URL"
+                android:inputType="textUri"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Category Dropdown -->
+            <Spinner
+                android:id="@+id/spinnerCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Sizes Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Sizes"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:id="@+id/sizesLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox android:id="@+id/cbS" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="S"/>
+                <CheckBox android:id="@+id/cbM" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="M"/>
+                <CheckBox android:id="@+id/cbL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="L"/>
+                <CheckBox android:id="@+id/cbXL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="XL"/>
+                <CheckBox android:id="@+id/cb2XL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2XL"/>
+            </LinearLayout>
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/btnAddItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Item"
+                android:layout_marginTop="16dp"/>
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
