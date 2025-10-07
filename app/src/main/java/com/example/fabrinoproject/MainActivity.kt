@@ -140,21 +140,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchItemsFromFirestore() {
         db.collection("items")
+            .whereEqualTo("isPopular", true) // Fetch only popular items
             .get()
             .addOnSuccessListener { documents ->
-                Log.d("Firestore", "Documents fetched: ${documents.size()}") // Debug
-
                 val items = documents.map { doc ->
                     val priceDouble = doc.getDouble("price") ?: 0.0
                     val sizesFromDb = (doc.get("sizes") as? List<*>)?.map { it.toString() } ?: defaultSizes
-                    Log.d("FirestoreItem", "Item: ${doc.getString("name")} Price: $priceDouble") // DEBUG
 
                     Item(
                         name = doc.getString("name") ?: "Unnamed",
                         price = priceDouble,
                         imageUrl = doc.getString("imageUrl") ?: "",
                         sizes = sizesFromDb,
-                        description = doc.getString("description") ?: "No description"
+                        description = doc.getString("description") ?: "No description",
+                        category = doc.getString("category") ?: "",
+                        isPopular = doc.getBoolean("isPopular") ?: false
                     )
                 }
 
@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e("FirestoreError", "Failed to fetch items", e)
             }
     }
+
 
     fun closeSidebar() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {

@@ -179,6 +179,14 @@
                 <CheckBox android:id="@+id/cb2XL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2XL"/>
             </LinearLayout>
 
+            <CheckBox
+                android:id="@+id/cbAddPopular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add as Popular"
+                android:checked="false"
+                android:layout_marginTop="8dp"/>
+
             <!-- Submit Button -->
             <Button
                 android:id="@+id/btnAddItem"

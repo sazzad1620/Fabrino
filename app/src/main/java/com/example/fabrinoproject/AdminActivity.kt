@@ -22,7 +22,7 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var userInfoLayout: LinearLayout
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
-    private val adminEmail = "admin@gmail.com" // fixed email
+    private val adminEmail = "admin@gmail.com"
 
     // Form fields
     private lateinit var etItemName: EditText
@@ -34,6 +34,7 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var cbL: CheckBox
     private lateinit var cbXL: CheckBox
     private lateinit var cb2XL: CheckBox
+    private lateinit var cbAddPopular: CheckBox // ✅ New checkbox for "Add as Popular"
     private lateinit var btnAddItem: Button
     private lateinit var btnSelectImage: Button
 
@@ -86,8 +87,12 @@ class AdminActivity : AppCompatActivity() {
         cbL = findViewById(R.id.cbL)
         cbXL = findViewById(R.id.cbXL)
         cb2XL = findViewById(R.id.cb2XL)
+        cbAddPopular = findViewById(R.id.cbAddPopular) // ✅ initialize checkbox
         btnAddItem = findViewById(R.id.btnAddItem)
         btnSelectImage = findViewById(R.id.btnSelectImage)
+
+        // ✅ Checkbox unchecked by default
+        cbAddPopular.isChecked = false
 
         // Setup category spinner
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
@@ -123,7 +128,12 @@ class AdminActivity : AppCompatActivity() {
     private fun showUserInfoPopup() {
         val inflater = LayoutInflater.from(this)
         val popupView = inflater.inflate(R.layout.popup_user_info, null)
-        val popupWindow = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
+        val popupWindow = PopupWindow(
+            popupView,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            true
+        )
 
         val tvFullName = popupView.findViewById<TextView>(R.id.tvFullName)
         val btnLogout = popupView.findViewById<Button>(R.id.btnLogout)
@@ -178,28 +188,32 @@ class AdminActivity : AppCompatActivity() {
             val encodedImage = Base64.encodeToString(bytes, Base64.DEFAULT)
 
             val client = OkHttpClient()
-            val formBody = okhttp3.FormBody.Builder()
+            val formBody = FormBody.Builder()
                 .add("key", imgbbApiKey)
                 .add("image", encodedImage)
                 .build()
 
-            val request = okhttp3.Request.Builder()
+            val request = Request.Builder()
                 .url("https://api.imgbb.com/1/upload")
                 .post(formBody)
                 .build()
 
-            client.newCall(request).enqueue(object : okhttp3.Callback {
-                override fun onFailure(call: okhttp3.Call, e: IOException) {
-                    runOnUiThread { Toast.makeText(this@AdminActivity, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show() }
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        Toast.makeText(this@AdminActivity, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
 
-                override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
                         val json = response.body?.string()
                         val url = JSONObject(json).getJSONObject("data").getString("url")
                         runOnUiThread { addItemToFirestore(url) }
                     } else {
-                        runOnUiThread { Toast.makeText(this@AdminActivity, "Upload failed: ${response.message}", Toast.LENGTH_SHORT).show() }
+                        runOnUiThread {
+                            Toast.makeText(this@AdminActivity, "Upload failed: ${response.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             })
@@ -214,6 +228,7 @@ class AdminActivity : AppCompatActivity() {
         val priceText = etPrice.text.toString().trim()
         val description = etDescription.text.toString().trim()
         val category = spinnerCategory.selectedItem.toString()
+        val isPopular = cbAddPopular.isChecked // ✅ get checkbox value
 
         if (name.isEmpty() || priceText.isEmpty() || description.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
@@ -238,13 +253,14 @@ class AdminActivity : AppCompatActivity() {
             return
         }
 
-        val item = Item(
-            name = name,
-            price = price,
-            description = description,
-            imageUrl = imageUrl,
-            sizes = sizes,
-            category = category
+        val item = hashMapOf(
+            "name" to name,
+            "price" to price,
+            "description" to description,
+            "imageUrl" to imageUrl,
+            "sizes" to sizes,
+            "category" to category,
+            "isPopular" to isPopular // ✅ store in Firestore
         )
 
         db.collection("items")
@@ -267,6 +283,7 @@ class AdminActivity : AppCompatActivity() {
         cbL.isChecked = false
         cbXL.isChecked = false
         cb2XL.isChecked = false
+        cbAddPopular.isChecked = false // ✅ reset checkbox
         spinnerCategory.setSelection(0)
         selectedImageUri = null
     }
