@@ -15,8 +15,9 @@
         android:paddingEnd="8dp"
         android:paddingBottom="4dp">
 
+
         <ImageView
-            android:id="@+id/topBarIcon"
+            android:id="@+id/ivHamburger"
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:clickable="true"
@@ -34,10 +35,9 @@
             android:padding="4dp"
             android:rotation="315"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/topBarIcon"
+            app:layout_constraintStart_toEndOf="@id/ivHamburger"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/fabrinologo" />
-
 
         <TextView
             android:id="@+id/textViewAppName"
@@ -54,7 +54,6 @@
             app:layout_constraintEnd_toStartOf="@id/userInfoLayout"
             app:layout_constraintStart_toEndOf="@id/imageViewLogo"
             app:layout_constraintTop_toTopOf="parent" />
-
 
         <LinearLayout
             android:id="@+id/userInfoLayout"
@@ -84,7 +83,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
-        android:id="@+id/viewDivider"
+        android:id="@+id/view3"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#CCCCCC"/>

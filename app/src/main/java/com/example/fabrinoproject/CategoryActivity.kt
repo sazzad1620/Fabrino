@@ -16,7 +16,7 @@ class CategoryActivity : AppCompatActivity() {
 
         val categoryName = intent.getStringExtra("CATEGORY_NAME") ?: "Category"
 
-        val topBarIcon = findViewById<ImageView>(R.id.topBarIcon)
+        val topBarIcon = findViewById<ImageView>(R.id.ivHamburger)
         topBarIcon.setImageResource(R.drawable.ic_arrow_back)
         topBarIcon.setOnClickListener { finish() }
 

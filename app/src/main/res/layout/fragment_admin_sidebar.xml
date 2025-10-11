@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvAddItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Item"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/tvManageItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Item"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/tvManageTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Transaction"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
+</ScrollView>

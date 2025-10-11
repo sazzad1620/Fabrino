@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewUser: TextView
     private lateinit var userInfoLayout: LinearLayout
 
-    private val defaultSizes = listOf("S", "M", "L", "XL", "2XL")
+    private val defaultSizes = listOf("S", "M", "L", "XL", "2XL", "Free Size")
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
 
@@ -154,6 +154,7 @@ class MainActivity : AppCompatActivity() {
                         sizes = sizesFromDb,
                         description = doc.getString("description") ?: "No description",
                         category = doc.getString("category") ?: "",
+                        quantity = (doc.getLong("quantity") ?: 0L).toInt(),
                         isPopular = doc.getBoolean("isPopular") ?: false
                     )
                 }

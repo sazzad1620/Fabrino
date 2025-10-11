@@ -35,6 +35,9 @@
         <activity android:name=".CategoryActivity" />
         <activity android:name=".ProductDetailActivity" />
         <activity android:name=".SignUpActivity" />
+        <activity android:name=".ManageItemActivity" />
+        <activity android:name=".ManageTransactionActivity" />
+
 
         <meta-data
             android:name="preloaded_fonts"

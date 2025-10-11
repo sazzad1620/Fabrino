@@ -9,6 +9,8 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -17,6 +19,9 @@ import org.json.JSONObject
 import java.io.IOException
 
 class AdminActivity : AppCompatActivity() {
+
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var ivHamburger: ImageView
 
     private lateinit var textViewUser: TextView
     private lateinit var userInfoLayout: LinearLayout
@@ -28,13 +33,15 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var etItemName: EditText
     private lateinit var etPrice: EditText
     private lateinit var etDescription: EditText
+    private lateinit var etQuantity: EditText
     private lateinit var spinnerCategory: Spinner
     private lateinit var cbS: CheckBox
     private lateinit var cbM: CheckBox
     private lateinit var cbL: CheckBox
     private lateinit var cbXL: CheckBox
     private lateinit var cb2XL: CheckBox
-    private lateinit var cbAddPopular: CheckBox // ✅ New checkbox for "Add as Popular"
+    private lateinit var cbFree: CheckBox
+    private lateinit var cbAddPopular: CheckBox
     private lateinit var btnAddItem: Button
     private lateinit var btnSelectImage: Button
 
@@ -59,7 +66,26 @@ class AdminActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin)
 
-        // Top bar
+        // --- Drawer ---
+        drawerLayout = findViewById(R.id.drawerLayoutAdmin)
+        ivHamburger = findViewById(R.id.ivHamburger)
+
+        ivHamburger.setOnClickListener {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+
+        // Load AdminSidebarFragment
+        if (supportFragmentManager.findFragmentById(R.id.adminSidebarFragment) == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.adminSidebarFragment, AdminSidebarFragment())
+                .commit()
+        }
+
+        // --- Top bar ---
         textViewUser = findViewById(R.id.textViewUser)
         userInfoLayout = findViewById(R.id.userInfoLayout)
 
@@ -77,32 +103,29 @@ class AdminActivity : AppCompatActivity() {
             }
         }
 
-        // Initialize form fields
+        // --- Form initialization ---
         etItemName = findViewById(R.id.etItemName)
         etPrice = findViewById(R.id.etPrice)
         etDescription = findViewById(R.id.etDescription)
+        etQuantity = findViewById(R.id.etQuantity)
         spinnerCategory = findViewById(R.id.spinnerCategory)
         cbS = findViewById(R.id.cbS)
         cbM = findViewById(R.id.cbM)
         cbL = findViewById(R.id.cbL)
         cbXL = findViewById(R.id.cbXL)
         cb2XL = findViewById(R.id.cb2XL)
-        cbAddPopular = findViewById(R.id.cbAddPopular) // ✅ initialize checkbox
+        cbFree = findViewById(R.id.cbFree)
+
+        cbAddPopular = findViewById(R.id.cbAddPopular)
         btnAddItem = findViewById(R.id.btnAddItem)
         btnSelectImage = findViewById(R.id.btnSelectImage)
-
-        // ✅ Checkbox unchecked by default
         cbAddPopular.isChecked = false
 
-        // Setup category spinner
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategory.adapter = adapter
 
-        // Image selection
         btnSelectImage.setOnClickListener { openImageChooser() }
-
-        // Add item click
         btnAddItem.setOnClickListener {
             if (selectedImageUri == null) {
                 Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show()
@@ -112,7 +135,22 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // --- User / Logout ---
+    // --- Drawer helper ---
+    fun closeSidebar() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    // --- Existing functions unchanged ---
     private fun fetchUserName() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).get()
@@ -164,7 +202,6 @@ class AdminActivity : AppCompatActivity() {
         popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
     }
 
-    // --- Image picker ---
     private fun openImageChooser() {
         val intent = Intent()
         intent.type = "image/*"
@@ -180,7 +217,6 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // --- Upload to ImgBB ---
     private fun uploadImageToImgBB(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -222,15 +258,15 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // --- Firestore ---
     private fun addItemToFirestore(imageUrl: String) {
         val name = etItemName.text.toString().trim()
         val priceText = etPrice.text.toString().trim()
         val description = etDescription.text.toString().trim()
+        val quantityText = etQuantity.text.toString().trim()
         val category = spinnerCategory.selectedItem.toString()
-        val isPopular = cbAddPopular.isChecked // ✅ get checkbox value
+        val isPopular = cbAddPopular.isChecked
 
-        if (name.isEmpty() || priceText.isEmpty() || description.isEmpty()) {
+        if (name.isEmpty() || priceText.isEmpty() || description.isEmpty() || quantityText.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
@@ -241,12 +277,19 @@ class AdminActivity : AppCompatActivity() {
             return
         }
 
+        val quantity = quantityText.toIntOrNull()
+        if (quantity == null || quantity < 0) {
+            Toast.makeText(this, "Invalid quantity", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val sizes = mutableListOf<String>()
         if (cbS.isChecked) sizes.add("S")
         if (cbM.isChecked) sizes.add("M")
         if (cbL.isChecked) sizes.add("L")
         if (cbXL.isChecked) sizes.add("XL")
         if (cb2XL.isChecked) sizes.add("2XL")
+        if (cbFree.isChecked) sizes.add("Free Size")
 
         if (sizes.isEmpty()) {
             Toast.makeText(this, "Select at least one size", Toast.LENGTH_SHORT).show()
@@ -260,7 +303,8 @@ class AdminActivity : AppCompatActivity() {
             "imageUrl" to imageUrl,
             "sizes" to sizes,
             "category" to category,
-            "isPopular" to isPopular // ✅ store in Firestore
+            "isPopular" to isPopular,
+            "quantity" to quantity
         )
 
         db.collection("items")
@@ -278,12 +322,14 @@ class AdminActivity : AppCompatActivity() {
         etItemName.text.clear()
         etPrice.text.clear()
         etDescription.text.clear()
+        etQuantity.text.clear()
         cbS.isChecked = false
         cbM.isChecked = false
         cbL.isChecked = false
         cbXL.isChecked = false
         cb2XL.isChecked = false
-        cbAddPopular.isChecked = false // ✅ reset checkbox
+        cbFree.isChecked = false
+        cbAddPopular.isChecked = false
         spinnerCategory.setSelection(0)
         selectedImageUri = null
     }

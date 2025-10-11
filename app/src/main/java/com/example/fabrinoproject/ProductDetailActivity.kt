@@ -19,7 +19,7 @@ class ProductDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
 
-        val topBarIcon = findViewById<ImageView>(R.id.topBarIcon)
+        val topBarIcon = findViewById<ImageView>(R.id.ivHamburger)
         topBarIcon.setImageResource(R.drawable.ic_arrow_back)
         topBarIcon.setOnClickListener { finish() }
 
