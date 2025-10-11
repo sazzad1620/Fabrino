@@ -1,0 +1,111 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:elevation="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardUseCompatPadding="true"
+    app:contentPadding="12dp">
+
+
+<RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Product Image -->
+        <ImageView
+            android:id="@+id/ivCartProductImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:scaleType="centerCrop"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/default_image" />
+
+        <!-- Product Name -->
+        <TextView
+            android:id="@+id/tvCartProductName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/ivCartProductImage"
+            android:layout_marginStart="16dp"
+            android:text="Product Name"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Product Price -->
+        <TextView
+            android:id="@+id/tvCartProductPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvCartProductName"
+            android:layout_toEndOf="@id/ivCartProductImage"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="৳500" />
+
+        <!-- Product Size -->
+        <TextView
+            android:id="@+id/tvCartProductSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvCartProductPrice"
+            android:layout_toEndOf="@id/ivCartProductImage"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Size: M" />
+
+        <!-- Delete icon at top-right -->
+        <ImageView
+            android:id="@+id/ivDeleteCartItem"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
+            app:srcCompat="@android:drawable/ic_menu_delete" />
+
+        <!-- Quantity controls just below delete icon -->
+        <LinearLayout
+            android:id="@+id/quantityLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_below="@id/ivDeleteCartItem"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/tvDecrease"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="-"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tvQuantity"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="1"
+                android:textSize="16sp"
+                android:layout_marginHorizontal="4dp" />
+
+            <TextView
+                android:id="@+id/tvIncrease"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="+"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

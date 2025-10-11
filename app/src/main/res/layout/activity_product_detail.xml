@@ -99,7 +99,7 @@
 
 
         <TextView
-            android:id="@+id/navCheckout"
+            android:id="@+id/navAddtoCart"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#2C74AE"
@@ -108,7 +108,7 @@
             android:gravity="center"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:text="Checkout"
+            android:text="Add to Cart"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
 

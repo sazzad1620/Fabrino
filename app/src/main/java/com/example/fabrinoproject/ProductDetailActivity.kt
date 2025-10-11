@@ -3,7 +3,6 @@ package com.example.fabrinoproject
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -37,7 +36,6 @@ class ProductDetailActivity : AppCompatActivity() {
         textViewUser = findViewById(R.id.textViewUser)
         userInfoLayout = findViewById(R.id.userInfoLayout)
 
-        // Fetch and display user name
         val firstNameFromIntent = intent.getStringExtra("firstName")
         if (!firstNameFromIntent.isNullOrEmpty()) {
             textViewUser.text = "Hi, $firstNameFromIntent"
@@ -45,7 +43,6 @@ class ProductDetailActivity : AppCompatActivity() {
             fetchUserName()
         }
 
-        // User info popup or sign-in using reusable helper
         userInfoLayout.setOnClickListener {
             if (auth.currentUser != null) {
                 UserPopupHelper.showUserPopup(this, userInfoLayout)
@@ -54,27 +51,24 @@ class ProductDetailActivity : AppCompatActivity() {
             }
         }
 
-        // Get product details from Intent
+        // Product details
         val productName = intent.getStringExtra("ITEM_NAME")
         val productPrice = intent.getDoubleExtra("ITEM_PRICE", 0.0)
         val productImageUrl = intent.getStringExtra("ITEM_IMAGE_URL")
         val productSizes = intent.getStringArrayListExtra("ITEM_SIZES") ?: arrayListOf()
         val productDescription = intent.getStringExtra("ITEM_DESC") ?: ""
 
-        // Bind views
         val tvName: TextView = findViewById(R.id.tvProductName)
         val tvPrice: TextView = findViewById(R.id.tvProductPrice)
         val ivImage: ImageView = findViewById(R.id.ivProductImage)
         val sizeContainer: LinearLayout = findViewById(R.id.sizeContainer)
         val tvDescription: TextView = findViewById(R.id.tvDescription)
-        val checkoutButton: TextView = findViewById(R.id.navCheckout)
+        val addToCartButton: TextView = findViewById(R.id.navAddtoCart)
 
-        // Set values
         tvName.text = productName
         tvPrice.text = "৳$productPrice"
         tvDescription.text = productDescription
 
-        // Load image with Glide
         if (!productImageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(productImageUrl.trim())
@@ -83,7 +77,7 @@ class ProductDetailActivity : AppCompatActivity() {
                 .into(ivImage)
         }
 
-        // Dynamically create size options
+        // Create size options dynamically
         productSizes.forEach { size ->
             val cardView = CardView(this).apply {
                 radius = 16f
@@ -121,11 +115,58 @@ class ProductDetailActivity : AppCompatActivity() {
             sizeContainer.addView(cardView, layoutParams)
         }
 
-        checkoutButton.setOnClickListener {
+        addToCartButton.setOnClickListener {
             if (selectedSize == null) {
                 Toast.makeText(this, "Please select a size first", Toast.LENGTH_SHORT).show()
-            } else {
+                return@setOnClickListener
+            }
+
+            val currentUser = auth.currentUser
+            if (currentUser == null) {
                 Toast.makeText(this, "Please create an account first", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, SignInActivity::class.java))
+                return@setOnClickListener
+            }
+
+            val uid = currentUser.uid
+            val userDocRef = db.collection("users").document(uid)
+            val cartRef = userDocRef.collection("cart")
+
+            userDocRef.get().addOnSuccessListener { userDoc ->
+                val userName = userDoc.getString("firstName") ?: "Unknown"
+
+                // Check if same product + size already exists
+                val query = cartRef.whereEqualTo("productName", productName)
+                    .whereEqualTo("size", selectedSize)
+                    .limit(1)
+
+                query.get().addOnSuccessListener { documents ->
+                    if (!documents.isEmpty) {
+                        val doc = documents.documents[0]
+                        val currentQty = doc.getLong("quantity") ?: 1
+                        doc.reference.update("quantity", currentQty + 1)
+                    } else {
+                        val cartItem = hashMapOf(
+                            "userName" to userName,
+                            "productName" to productName,
+                            "productPrice" to productPrice,
+                            "productImageUrl" to productImageUrl,
+                            "size" to selectedSize,
+                            "quantity" to 1
+                        )
+                        cartRef.add(cartItem)
+                    }
+
+                    Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, CartActivity::class.java))
+                }.addOnFailureListener { e ->
+                    Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show()
+                    Log.e("FirestoreError", "Error adding cart item", e)
+                }
+
+            }.addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to fetch user info", Toast.LENGTH_SHORT).show()
+                Log.e("FirestoreError", "Error fetching user info", e)
             }
         }
     }
