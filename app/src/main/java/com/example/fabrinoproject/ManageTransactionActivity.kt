@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -22,6 +23,7 @@ class ManageTransactionActivity : AppCompatActivity() {
     private lateinit var ivHamburger: ImageView
     private lateinit var textViewUser: TextView
     private lateinit var userInfoLayout: LinearLayout
+    private lateinit var dimBackground: View  // Added dim background
 
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
@@ -30,6 +32,19 @@ class ManageTransactionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_transaction)
+
+        // --- Dim view setup ---
+        dimBackground = View(this).apply {
+            setBackgroundColor(0x99000000.toInt()) // semi-transparent black
+            visibility = View.GONE
+        }
+        addContentView(
+            dimBackground,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+        )
 
         // --- Drawer setup ---
         drawerLayout = findViewById(R.id.drawerLayoutAdmin)
@@ -82,7 +97,7 @@ class ManageTransactionActivity : AppCompatActivity() {
             }
     }
 
-    // --- User info popup ---
+    // --- User info popup with dim ---
     private fun showUserInfoPopup() {
         val inflater = LayoutInflater.from(this)
         val popupView = inflater.inflate(R.layout.popup_user_info, null)
@@ -117,6 +132,12 @@ class ManageTransactionActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
+        }
+
+        // --- Show dim when popup opens ---
+        dimBackground.visibility = View.VISIBLE
+        popupWindow.setOnDismissListener {
+            dimBackground.visibility = View.GONE
         }
 
         popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)

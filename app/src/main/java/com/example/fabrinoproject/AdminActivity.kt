@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -25,6 +27,7 @@ class AdminActivity : AppCompatActivity() {
 
     private lateinit var textViewUser: TextView
     private lateinit var userInfoLayout: LinearLayout
+    private lateinit var dimBackground: View
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
     private val adminEmail = "admin@gmail.com"
@@ -89,6 +92,20 @@ class AdminActivity : AppCompatActivity() {
         textViewUser = findViewById(R.id.textViewUser)
         userInfoLayout = findViewById(R.id.userInfoLayout)
 
+        // --- Add dim background programmatically ---
+        dimBackground = View(this).apply {
+            setBackgroundColor(ContextCompat.getColor(this@AdminActivity, R.color.black))
+            alpha = 0.5f
+            visibility = View.GONE
+        }
+        addContentView(
+            dimBackground,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
         if (auth.currentUser != null) {
             if (auth.currentUser?.email == adminEmail) {
                 textViewUser.text = "Hi, Admin"
@@ -97,6 +114,7 @@ class AdminActivity : AppCompatActivity() {
             }
         }
 
+        // User info popup
         userInfoLayout.setOnClickListener {
             if (auth.currentUser != null) {
                 showUserInfoPopup()
@@ -150,7 +168,7 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // --- Existing functions unchanged ---
+    // --- Fetch user name for non-admin ---
     private fun fetchUserName() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).get()
@@ -163,30 +181,30 @@ class AdminActivity : AppCompatActivity() {
             }
     }
 
+    // --- User info popup with dim background ---
     private fun showUserInfoPopup() {
         val inflater = LayoutInflater.from(this)
-        val popupView = inflater.inflate(R.layout.popup_user_info, null)
+        val view = inflater.inflate(R.layout.popup_user_info, null)
         val popupWindow = PopupWindow(
-            popupView,
+            view,
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
             true
         )
 
-        val tvFullName = popupView.findViewById<TextView>(R.id.tvFullName)
-        val btnLogout = popupView.findViewById<Button>(R.id.btnLogout)
-
+        val tvFullName = view.findViewById<TextView>(R.id.tvFullName)
+        val btnLogout = view.findViewById<Button>(R.id.btnLogout)
         val currentUser = auth.currentUser
+
         if (currentUser?.email == adminEmail) {
             tvFullName.text = "Admin"
         } else {
             val uid = currentUser?.uid
             if (uid != null) {
                 db.collection("users").document(uid).get()
-                    .addOnSuccessListener { doc ->
-                        val firstName = doc.getString("firstName") ?: ""
-                        val lastName = doc.getString("lastName") ?: ""
-                        tvFullName.text = "$firstName $lastName"
+                    .addOnSuccessListener {
+                        tvFullName.text =
+                            "${it.getString("firstName")} ${it.getString("lastName")}"
                     }
             }
         }
@@ -199,9 +217,16 @@ class AdminActivity : AppCompatActivity() {
             finish()
         }
 
+        // Show dim background
+        dimBackground.visibility = View.VISIBLE
+        popupWindow.setOnDismissListener {
+            dimBackground.visibility = View.GONE
+        }
+
         popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
     }
 
+    // --- Image chooser ---
     private fun openImageChooser() {
         val intent = Intent()
         intent.type = "image/*"
@@ -217,6 +242,7 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
+    // --- Upload image ---
     private fun uploadImageToImgBB(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
@@ -258,6 +284,7 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
+    // --- Add item to Firestore ---
     private fun addItemToFirestore(imageUrl: String) {
         val name = etItemName.text.toString().trim()
         val priceText = etPrice.text.toString().trim()
@@ -318,6 +345,7 @@ class AdminActivity : AppCompatActivity() {
             }
     }
 
+    // --- Clear form ---
     private fun clearForm() {
         etItemName.text.clear()
         etPrice.text.clear()

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -31,6 +32,7 @@ class ManageItemActivity : AppCompatActivity() {
     private lateinit var spinnerCategoryFilter: Spinner
     private lateinit var itemList: MutableList<Item>
     private lateinit var adapter: ManageItemAdapter
+    private lateinit var dimBackground: View  // Added for dim effect
 
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
@@ -40,10 +42,7 @@ class ManageItemActivity : AppCompatActivity() {
     private var selectedImageUri: Uri? = null
     private val PICK_IMAGE_REQUEST = 101
 
-    // Track current category
     private var selectedCategory: String = "All"
-
-    // Categories
     private val categories = arrayOf(
         "Half Sleeve T-shirt", "Full Sleeve T-shirt", "Polo T-shirt",
         "Jeans", "Punjabi", "Kurti", "T-Shirt", "Pants", "Wallet", "Face Mask"
@@ -55,6 +54,19 @@ class ManageItemActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manage_item)
+
+        // --- Dim view setup ---
+        dimBackground = View(this).apply {
+            setBackgroundColor(0x99000000.toInt()) // semi-transparent black
+            visibility = View.GONE
+        }
+        addContentView(
+            dimBackground,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+        )
 
         // Drawer setup
         drawerLayout = findViewById(R.id.drawerLayoutAdmin)
@@ -254,6 +266,12 @@ class ManageItemActivity : AppCompatActivity() {
 
         btnCancel.setOnClickListener { popupWindow?.dismiss() }
 
+        // --- Show dim when popup opens ---
+        dimBackground.visibility = View.VISIBLE
+        popupWindow?.setOnDismissListener {
+            dimBackground.visibility = View.GONE
+        }
+
         popupWindow?.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
     }
 
@@ -384,6 +402,13 @@ class ManageItemActivity : AppCompatActivity() {
             startActivity(i)
             finish()
         }
+
+        // --- Show dim when popup opens ---
+        dimBackground.visibility = View.VISIBLE
+        popup.setOnDismissListener {
+            dimBackground.visibility = View.GONE
+        }
+
         popup.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
     }
 }

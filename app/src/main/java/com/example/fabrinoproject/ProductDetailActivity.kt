@@ -1,6 +1,9 @@
 package com.example.fabrinoproject
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -9,37 +12,69 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class ProductDetailActivity : AppCompatActivity() {
 
-    // track selected size
     private var selectedSize: String? = null
+    private lateinit var textViewUser: TextView
+    private lateinit var userInfoLayout: LinearLayout
+    private val auth = FirebaseAuth.getInstance()
+    private val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_product_detail)
 
+        // Back arrow setup
         val topBarIcon = findViewById<ImageView>(R.id.ivHamburger)
         topBarIcon.setImageResource(R.drawable.ic_arrow_back)
         topBarIcon.setOnClickListener { finish() }
 
-        // Updated: get the correct extras
+        // User info
+        textViewUser = findViewById(R.id.textViewUser)
+        userInfoLayout = findViewById(R.id.userInfoLayout)
+
+        // Fetch and display user name
+        val firstNameFromIntent = intent.getStringExtra("firstName")
+        if (!firstNameFromIntent.isNullOrEmpty()) {
+            textViewUser.text = "Hi, $firstNameFromIntent"
+        } else {
+            fetchUserName()
+        }
+
+        // User info popup or sign-in using reusable helper
+        userInfoLayout.setOnClickListener {
+            if (auth.currentUser != null) {
+                UserPopupHelper.showUserPopup(this, userInfoLayout)
+            } else {
+                startActivity(Intent(this, SignInActivity::class.java))
+            }
+        }
+
+        // Get product details from Intent
         val productName = intent.getStringExtra("ITEM_NAME")
         val productPrice = intent.getDoubleExtra("ITEM_PRICE", 0.0)
         val productImageUrl = intent.getStringExtra("ITEM_IMAGE_URL")
         val productSizes = intent.getStringArrayListExtra("ITEM_SIZES") ?: arrayListOf()
         val productDescription = intent.getStringExtra("ITEM_DESC") ?: ""
 
+        // Bind views
         val tvName: TextView = findViewById(R.id.tvProductName)
         val tvPrice: TextView = findViewById(R.id.tvProductPrice)
         val ivImage: ImageView = findViewById(R.id.ivProductImage)
         val sizeContainer: LinearLayout = findViewById(R.id.sizeContainer)
         val tvDescription: TextView = findViewById(R.id.tvDescription)
+        val checkoutButton: TextView = findViewById(R.id.navCheckout)
 
+        // Set values
         tvName.text = productName
         tvPrice.text = "৳$productPrice"
+        tvDescription.text = productDescription
 
-        // Load image from URL using Glide
+        // Load image with Glide
         if (!productImageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(productImageUrl.trim())
@@ -48,9 +83,7 @@ class ProductDetailActivity : AppCompatActivity() {
                 .into(ivImage)
         }
 
-        tvDescription.text = productDescription
-
-        // Product size cards
+        // Dynamically create size options
         productSizes.forEach { size ->
             val cardView = CardView(this).apply {
                 radius = 16f
@@ -69,17 +102,14 @@ class ProductDetailActivity : AppCompatActivity() {
             cardView.addView(sizeTextView)
 
             cardView.setOnClickListener {
-                // Reset all boxes
                 for (i in 0 until sizeContainer.childCount) {
                     val child = sizeContainer.getChildAt(i) as CardView
                     child.setCardBackgroundColor(ContextCompat.getColor(this, R.color.ash))
                     (child.getChildAt(0) as TextView).setTextColor(ContextCompat.getColor(this, android.R.color.black))
                 }
-                // Highlight selected
+
                 cardView.setCardBackgroundColor(ContextCompat.getColor(this, R.color.black))
                 sizeTextView.setTextColor(ContextCompat.getColor(this, R.color.ash))
-
-                // Save selected size
                 selectedSize = size
             }
 
@@ -91,14 +121,34 @@ class ProductDetailActivity : AppCompatActivity() {
             sizeContainer.addView(cardView, layoutParams)
         }
 
-        // Checkout Button
-        val checkoutButton: TextView = findViewById(R.id.navCheckout)
         checkoutButton.setOnClickListener {
             if (selectedSize == null) {
                 Toast.makeText(this, "Please select a size first", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Please create an account first", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun fetchUserName() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            val uid = currentUser.uid
+            db.collection("users").document(uid).get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val firstName = document.getString("firstName") ?: ""
+                        textViewUser.text = "Hi, $firstName"
+                    } else {
+                        textViewUser.text = "Hi, Guest"
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FirestoreError", "Failed to fetch user name", e)
+                    textViewUser.text = "Hi, Guest"
+                }
+        } else {
+            textViewUser.text = "Hi, Guest"
         }
     }
 }

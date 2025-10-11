@@ -4,12 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -49,6 +45,7 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
+        // Sidebar fragment
         if (supportFragmentManager.findFragmentById(R.id.sidebarFragment) == null) {
             val sidebarFragment = SidebarFragment()
             supportFragmentManager.beginTransaction()
@@ -56,26 +53,23 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         }
 
-        // Check if firstName is passed via Intent
+        // Show username
         val firstNameFromIntent = intent.getStringExtra("firstName")
         if (!firstNameFromIntent.isNullOrEmpty()) {
             textViewUser.text = "Hi, $firstNameFromIntent"
         } else {
-            // Fetch user's first name from Firestore if not passed
             fetchUserName()
         }
 
-        // Click on user info layout to show popup
+        // Click user info layout → show reusable popup
         userInfoLayout.setOnClickListener {
             if (auth.currentUser != null) {
-                showUserInfoPopup()
+                UserPopupHelper.showUserPopup(this, userInfoLayout)
             } else {
-                // If guest, go to sign in
                 startActivity(Intent(this, SignInActivity::class.java))
             }
         }
 
-        // Fetch items from Firestore
         fetchItemsFromFirestore()
     }
 
@@ -101,46 +95,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showUserInfoPopup() {
-        val inflater = LayoutInflater.from(this)
-        val popupView: View = inflater.inflate(R.layout.popup_user_info, null)
-
-        val popupWindow = PopupWindow(
-            popupView,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            true
-        )
-
-        // Fetch full name from Firestore
-        val uid = auth.currentUser?.uid
-        val tvFullName = popupView.findViewById<TextView>(R.id.tvFullName)
-        val btnLogout = popupView.findViewById<Button>(R.id.btnLogout)
-
-        if (uid != null) {
-            db.collection("users").document(uid).get()
-                .addOnSuccessListener { document ->
-                    if (document != null && document.exists()) {
-                        val firstName = document.getString("firstName") ?: ""
-                        val lastName = document.getString("lastName") ?: ""
-                        tvFullName.text = "$firstName $lastName"
-                    }
-                }
-        }
-
-        btnLogout.setOnClickListener {
-            auth.signOut()
-            startActivity(Intent(this, SignInActivity::class.java))
-            finish() // CloseActivity after logout
-        }
-
-        // Show popup below the user info layout
-        popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
-    }
-
     private fun fetchItemsFromFirestore() {
         db.collection("items")
-            .whereEqualTo("isPopular", true) // Fetch only popular items
+            .whereEqualTo("isPopular", true)
             .get()
             .addOnSuccessListener { documents ->
                 val items = documents.map { doc ->
@@ -165,7 +122,6 @@ class MainActivity : AppCompatActivity() {
                 Log.e("FirestoreError", "Failed to fetch items", e)
             }
     }
-
 
     fun closeSidebar() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
