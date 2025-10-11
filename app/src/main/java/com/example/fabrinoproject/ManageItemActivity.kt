@@ -223,6 +223,7 @@ class ManageItemActivity : AppCompatActivity() {
         cbL.isChecked = item.sizes.contains("L")
         cbXL.isChecked = item.sizes.contains("XL")
         cb2XL.isChecked = item.sizes.contains("2XL")
+        cbFree.isChecked = item.sizes.contains("Free Size")
 
         btnSelectImage.setOnClickListener { openImageChooser() }
 
