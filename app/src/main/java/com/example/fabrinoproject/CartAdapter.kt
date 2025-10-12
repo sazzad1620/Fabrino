@@ -13,7 +13,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class CartAdapter(
     private val context: Context,
-    private var cartList: MutableList<CartItem>
+    private var cartList: MutableList<CartItem>,
+    private val onCartUpdated: () -> Unit  // Callback to notify total price update
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -57,11 +58,12 @@ class CartAdapter(
                 val currentItem = cartList[pos]
                 val newQty = currentItem.quantity + 1
                 db.collection("users").document(uid)
-                    .collection("cart").document(currentItem.documentId) // Use documentId here
+                    .collection("cart").document(currentItem.documentId)
                     .update("quantity", newQty)
                     .addOnSuccessListener {
                         currentItem.quantity = newQty
                         notifyItemChanged(pos)
+                        onCartUpdated()  // Notify activity to update total
                     }
             }
         }
@@ -74,11 +76,12 @@ class CartAdapter(
                 if (currentItem.quantity > 1) {
                     val newQty = currentItem.quantity - 1
                     db.collection("users").document(uid)
-                        .collection("cart").document(currentItem.documentId) // Use documentId
+                        .collection("cart").document(currentItem.documentId)
                         .update("quantity", newQty)
                         .addOnSuccessListener {
                             currentItem.quantity = newQty
                             notifyItemChanged(pos)
+                            onCartUpdated()  // Notify activity to update total
                         }
                 }
             }
@@ -90,12 +93,13 @@ class CartAdapter(
             if (pos != RecyclerView.NO_POSITION) {
                 val currentItem = cartList[pos]
                 db.collection("users").document(uid)
-                    .collection("cart").document(currentItem.documentId) // Use documentId
+                    .collection("cart").document(currentItem.documentId)
                     .delete()
                     .addOnSuccessListener {
                         if (pos < cartList.size) {
                             cartList.removeAt(pos)
                             notifyItemRemoved(pos)
+                            onCartUpdated()  // Notify activity to update total
                         }
                     }
             }
