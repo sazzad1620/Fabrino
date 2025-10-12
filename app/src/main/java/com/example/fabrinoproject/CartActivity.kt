@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,9 +36,9 @@ class CartActivity : AppCompatActivity() {
         tvTotalPrice = findViewById(R.id.tvTotalPrice)
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder)
 
+        // Place Order functionality
         btnPlaceOrder.setOnClickListener {
-            // TODO: Implement placing order logic
-            // Example: Move items to "orders" collection and clear "cart"
+            placeOrder()
         }
 
         // RecyclerView setup with callback for total price update
@@ -79,4 +80,76 @@ class CartActivity : AppCompatActivity() {
         tvTotalPrice.text = " ৳${"%.2f".format(totalWithDelivery)}"
     }
 
+    private fun placeOrder() {
+        val currentUser = auth.currentUser ?: return
+        val uid = currentUser.uid
+        if (cartList.isEmpty()) {
+            Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Fetch user info
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { userDoc ->
+                val userName = userDoc.getString("firstName") ?: "Unknown"
+                val userEmail = currentUser.email ?: "unknown@example.com"
+
+                // Generate transaction ID
+                val transactionId = "TXN_" + System.currentTimeMillis()
+
+                // Calculate total with delivery
+                val deliveryCost = 80.0
+                val totalPrice = cartList.sumOf { it.productPrice * it.quantity } + deliveryCost
+
+                // Prepare transaction data
+                val transactionData = hashMapOf(
+                    "transactionId" to transactionId,
+                    "userId" to uid,
+                    "userName" to userName,
+                    "userEmail" to userEmail,
+                    "items" to cartList.map { item ->
+                        hashMapOf(
+                            "productName" to item.productName,
+                            "productPrice" to item.productPrice,
+                            "quantity" to item.quantity,
+                            "size" to item.size
+                        )
+                    },
+                    "totalAmount" to totalPrice,
+                    "deliveryCost" to deliveryCost,
+                    "status" to "Order Received",
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                // Save to transactions collection
+                db.collection("transactions")
+                    .add(transactionData)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_SHORT).show()
+
+                        // Clear cart after placing order
+                        clearUserCart(uid)
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Failed to place order", Toast.LENGTH_SHORT).show()
+                        Log.e("CartActivity", "Error placing order", e)
+                    }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to fetch user info", Toast.LENGTH_SHORT).show()
+                Log.e("CartActivity", "Error fetching user info", e)
+            }
+    }
+
+    private fun clearUserCart(uid: String) {
+        val cartRef = db.collection("users").document(uid).collection("cart")
+        cartRef.get().addOnSuccessListener { documents ->
+            for (doc in documents) {
+                doc.reference.delete()
+            }
+            cartList.clear()
+            adapter.notifyDataSetChanged()
+            updateTotalPrice()
+        }
+    }
 }

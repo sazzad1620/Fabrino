@@ -17,7 +17,7 @@ class AdminSidebarFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val view = inflater.inflate(R.layout.fragment_admin_sidebar, container, false)
 
         tvAddItem = view.findViewById(R.id.tvAddItem)
@@ -25,15 +25,24 @@ class AdminSidebarFragment : Fragment() {
         tvManageTransaction = view.findViewById(R.id.tvManageTransaction)
 
         tvAddItem.setOnClickListener {
-            // Already on Add Item page, just close drawer
+            // Close drawer first
             (activity as? AdminActivity)?.closeSidebar()
+
+            // Only start AdminActivity if we are not already on it
+            if (activity !is AdminActivity) {
+                val intent = Intent(requireContext(), AdminActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(intent)
+            }
         }
 
         tvManageItem.setOnClickListener {
+            (activity as? AdminActivity)?.closeSidebar()
             startActivity(Intent(requireContext(), ManageItemActivity::class.java))
         }
 
         tvManageTransaction.setOnClickListener {
+            (activity as? AdminActivity)?.closeSidebar()
             startActivity(Intent(requireContext(), ManageTransactionActivity::class.java))
         }
 

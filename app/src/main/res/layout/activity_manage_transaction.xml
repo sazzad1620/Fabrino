@@ -1,18 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawerLayoutAdmin"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <!-- Include Top Bar -->
-    <include
-        android:id="@+id/includeTopBar"
-        layout="@layout/topbar_layout"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <!-- Main content -->
+    <LinearLayout
+        android:id="@+id/mainContent"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+        <!-- Include Top Bar -->
+        <include
+            android:id="@+id/includeTopBar"
+            layout="@layout/topbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- RecyclerView for transactions -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
+    </LinearLayout>
 
     <!-- Admin Sidebar Fragment -->
     <androidx.fragment.app.FragmentContainerView

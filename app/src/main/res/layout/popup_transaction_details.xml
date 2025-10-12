@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvPopupTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Order Details"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:paddingBottom="8dp" />
+
+        <!-- Container for cart items -->
+        <LinearLayout
+            android:id="@+id/llTransactionItems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Total price -->
+        <TextView
+            android:id="@+id/tvTotalPricePopup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total: ৳0.00"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#2C74AE"
+            android:layout_marginTop="12dp" />
+
+        <!-- Close button -->
+        <Button
+            android:id="@+id/btnClosePopup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:layout_gravity="end"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#2C74AE"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+</ScrollView>
