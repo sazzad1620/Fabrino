@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.ktx.toObject
 
 class CartActivity : AppCompatActivity() {
 
@@ -21,6 +23,8 @@ class CartActivity : AppCompatActivity() {
 
     private lateinit var tvTotalPrice: TextView
     private lateinit var btnPlaceOrder: TextView
+
+    private var cartListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,40 +40,38 @@ class CartActivity : AppCompatActivity() {
         tvTotalPrice = findViewById(R.id.tvTotalPrice)
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder)
 
-        // Place Order functionality
         btnPlaceOrder.setOnClickListener {
             placeOrder()
         }
 
-        // RecyclerView setup with callback for total price update
+        // RecyclerView setup
         rvCart = findViewById(R.id.rvCart)
         rvCart.layoutManager = LinearLayoutManager(this)
-        adapter = CartAdapter(this, cartList) {
-            updateTotalPrice() // Callback to update total price instantly
-        }
+        adapter = CartAdapter(this, cartList) { updateTotalPrice() }
         rvCart.adapter = adapter
 
-        loadCartItems()
+        listenToCartUpdates() // Use real-time listener
     }
 
-    private fun loadCartItems() {
+    private fun listenToCartUpdates() {
         val currentUser = auth.currentUser ?: return
         val uid = currentUser.uid
 
-        db.collection("users").document(uid).collection("cart")
-            .get()
-            .addOnSuccessListener { documents ->
+        cartListener = db.collection("users").document(uid).collection("cart")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.e("CartActivity", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
                 cartList.clear()
-                for (doc in documents) {
-                    val item = doc.toObject(CartItem::class.java)
+                snapshots?.forEach { doc ->
+                    val item = doc.toObject<CartItem>()
                     item.documentId = doc.id
                     cartList.add(item)
                 }
                 adapter.notifyDataSetChanged()
                 updateTotalPrice()
-            }
-            .addOnFailureListener { e ->
-                Log.e("CartActivity", "Failed to load cart items", e)
             }
     }
 
@@ -88,20 +90,17 @@ class CartActivity : AppCompatActivity() {
             return
         }
 
-        // Fetch user info
         db.collection("users").document(uid).get()
             .addOnSuccessListener { userDoc ->
-                val userName = userDoc.getString("firstName") ?: "Unknown"
+                val firstName = userDoc.getString("firstName") ?: ""
+                val lastName = userDoc.getString("lastName") ?: ""
+                val userName = "$firstName $lastName".trim()
                 val userEmail = currentUser.email ?: "unknown@example.com"
 
-                // Generate transaction ID
                 val transactionId = "TXN_" + System.currentTimeMillis()
-
-                // Calculate total with delivery
                 val deliveryCost = 80.0
                 val totalPrice = cartList.sumOf { it.productPrice * it.quantity } + deliveryCost
 
-                // Prepare transaction data
                 val transactionData = hashMapOf(
                     "transactionId" to transactionId,
                     "userId" to uid,
@@ -121,13 +120,10 @@ class CartActivity : AppCompatActivity() {
                     "timestamp" to System.currentTimeMillis()
                 )
 
-                // Save to transactions collection
                 db.collection("transactions")
                     .add(transactionData)
                     .addOnSuccessListener {
                         Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_SHORT).show()
-
-                        // Clear cart after placing order
                         clearUserCart(uid)
                     }
                     .addOnFailureListener { e ->
@@ -147,9 +143,11 @@ class CartActivity : AppCompatActivity() {
             for (doc in documents) {
                 doc.reference.delete()
             }
-            cartList.clear()
-            adapter.notifyDataSetChanged()
-            updateTotalPrice()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cartListener?.remove() // Remove listener to avoid memory leaks
     }
 }

@@ -71,6 +71,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         fetchItemsFromFirestore()
+
+        // ✅ Setup bottom bar
+        val bottomBar = findViewById<LinearLayout>(R.id.bottomBar)
+        val isLoggedIn = auth.currentUser != null
+        BottomBarHelper.setupBottomBar(this, bottomBar, isLoggedIn)
     }
 
     private fun fetchUserName() {

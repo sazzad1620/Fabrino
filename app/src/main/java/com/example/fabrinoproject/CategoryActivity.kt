@@ -61,6 +61,15 @@ class CategoryActivity : AppCompatActivity() {
             val items = ItemRepository.getItemsByCategory(categoryName)
             recyclerView.adapter = ItemAdapter(items)
         }
+
+        // ✅ Setup bottom bar correctly
+        val bottomBar = findViewById<LinearLayout>(R.id.bottomBar)
+        if (bottomBar != null) {
+            val isLoggedIn = auth.currentUser != null
+            BottomBarHelper.setupBottomBar(this, bottomBar, isLoggedIn)
+        } else {
+            Log.e("CategoryActivity", "Bottom bar not found!")
+        }
     }
 
     private fun fetchUserName() {

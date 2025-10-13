@@ -13,7 +13,9 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 data class Transaction(
@@ -40,6 +42,7 @@ class ManageTransactionActivity : AppCompatActivity() {
 
     private val transactionList = mutableListOf<Transaction>()
     private lateinit var adapter: TransactionAdapter
+    private var transactionListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,7 +94,7 @@ class ManageTransactionActivity : AppCompatActivity() {
         adapter = TransactionAdapter(transactionList)
         rvTransactions.adapter = adapter
 
-        loadTransactions()
+        listenToTransactions() // Real-time updates
     }
 
     private fun fetchUserName() {
@@ -99,7 +102,8 @@ class ManageTransactionActivity : AppCompatActivity() {
         db.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
                 val firstName = doc.getString("firstName") ?: "Admin"
-                textViewUser.text = "Hi, $firstName"
+                val lastName = doc.getString("lastName") ?: ""
+                textViewUser.text = "Hi, ${firstName} ${lastName}".trim()
             }
             .addOnFailureListener { textViewUser.text = "Hi, Admin" }
     }
@@ -130,8 +134,12 @@ class ManageTransactionActivity : AppCompatActivity() {
             }
         }
 
+        // --- LOGOUT WORKS LIKE MANAGEITEM ---
         btnLogout.setOnClickListener {
             auth.signOut()
+            val intent = Intent(this@ManageTransactionActivity, SignInActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
             finish()
         }
 
@@ -140,24 +148,21 @@ class ManageTransactionActivity : AppCompatActivity() {
         popupWindow.showAsDropDown(userInfoLayout, 0, 0, Gravity.START)
     }
 
-    private fun loadTransactions() {
-        db.collection("transactions").get()
-            .addOnSuccessListener { docs ->
+    // --- Real-time listener for transactions ---
+    private fun listenToTransactions() {
+        transactionListener = db.collection("transactions")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) return@addSnapshotListener
                 transactionList.clear()
-                for (doc in docs) {
-                    val trans = doc.toObject(Transaction::class.java)
+                snapshots?.forEach { doc ->
+                    val trans = doc.toObject<Transaction>()
                     trans.transId = doc.id
-
-                    // Fix total price
-                    val totalAmount = doc.getDouble("totalAmount") ?: 0.0
-                    trans.totalPrice = totalAmount
-
+                    trans.totalPrice = doc.getDouble("totalAmount") ?: 0.0
                     transactionList.add(trans)
                 }
                 adapter.notifyDataSetChanged()
             }
     }
-
 
     fun closeSidebar() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START)
@@ -166,6 +171,11 @@ class ManageTransactionActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START)
         else super.onBackPressed()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        transactionListener?.remove()
     }
 
     // --- Adapter ---
@@ -192,7 +202,6 @@ class ManageTransactionActivity : AppCompatActivity() {
             holder.tvUserName.text = item.userName
             holder.tvUserEmail.text = item.userEmail
 
-            // Status Spinner
             val statusOptions = listOf(
                 "Order received", "Canceled", "Packed", "Ready to ship",
                 "Shipped", "Out for Delivery", "Delivered"
@@ -206,21 +215,16 @@ class ManageTransactionActivity : AppCompatActivity() {
             holder.spinnerStatus.adapter = spinnerAdapter
             holder.spinnerStatus.setSelection(statusOptions.indexOf(item.status))
             holder.spinnerStatus.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?, view: View?, pos: Int, id: Long
-                ) {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
                     val newStatus = statusOptions[pos]
                     if (newStatus != item.status) {
-                        db.collection("transactions").document(item.transId)
-                            .update("status", newStatus)
+                        db.collection("transactions").document(item.transId).update("status", newStatus)
                         item.status = newStatus
                     }
                 }
-
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
 
-            // View details popup
             holder.btnViewDetails.setOnClickListener {
                 showTransactionDetailsPopup(item)
             }

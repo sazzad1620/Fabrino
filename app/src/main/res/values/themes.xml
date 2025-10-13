@@ -1,9 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- Base application theme -->
     <style name="Base.Theme.FabrinoProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+
+        <!-- ✅ White status bar with dark icons -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- ✅ White navigation bar with dark icons -->
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Keep default background -->
+        <item name="android:windowBackground">@android:color/white</item>
     </style>
 
+    <!-- App theme -->
     <style name="Theme.FabrinoProject" parent="Base.Theme.FabrinoProject" />
 </resources>
